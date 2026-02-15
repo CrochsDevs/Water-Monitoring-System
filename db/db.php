@@ -1,4 +1,5 @@
 <?php
+// db/db.php - Pure database connection only
 $db_config = [
     'host' => 'localhost',
     'username' => 'root',
