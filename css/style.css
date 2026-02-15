@@ -1,0 +1,834 @@
+/* ========================================
+   WATER MONITORING SYSTEM - CLSU THEME
+   ======================================== */
+
+:root {
+    --clsu-green: #006837;
+    --clsu-green-dark: #004d29;
+    --clsu-yellow: #fdb813;
+    --clsu-yellow-dark: #e5a710;
+    --clsu-white: #ffffff;
+    --clsu-gray: #f4f4f4;
+    --clsu-light-bg: #f9f9f9;
+    --text-dark: #2c3e50;
+    --text-light: #666666;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --border-radius: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--clsu-light-bg);
+    line-height: 1.6;
+    color: var(--text-dark);
+}
+
+/* ========================================
+   TOPBAR / NAVBAR STYLES
+   ======================================== */
+
+.navbar {
+    background: var(--clsu-green);
+    color: white;
+    padding: 0 5%;
+    height: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Left side - Logo and Institution */
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.clsu-logo {
+    width: 50px;
+    height: 50px;
+    background: var(--clsu-yellow);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--clsu-green);
+    border: 2px solid white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.institution-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.institution-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--clsu-yellow);
+    line-height: 1.3;
+}
+
+.institution-campus {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.system-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    margin-top: 2px;
+}
+
+/* Right side - User Menu */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* User Dropdown */
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 8px 15px;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: background 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dropdown-trigger:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    background: var(--clsu-yellow);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--clsu-green);
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.user-info-small {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name-small {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+}
+
+.user-role-small {
+    font-size: 11px;
+    color: var(--clsu-yellow);
+    text-transform: uppercase;
+}
+
+.dropdown-arrow {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-left: 5px;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background: white;
+    width: 250px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s;
+    z-index: 1001;
+}
+
+.user-dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.dropdown-avatar {
+    width: 50px;
+    height: 50px;
+    background: var(--clsu-green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.dropdown-user-info h4 {
+    color: var(--text-dark);
+    font-size: 16px;
+    margin-bottom: 3px;
+}
+
+.dropdown-user-info p {
+    color: var(--clsu-green);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.dropdown-items {
+    padding: 10px 0;
+}
+
+.dropdown-item {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-dark);
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.dropdown-item:hover {
+    background: #f5f5f5;
+}
+
+.dropdown-item i {
+    width: 20px;
+    color: var(--clsu-green);
+    font-size: 16px;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #eee;
+    margin: 8px 0;
+}
+
+.dropdown-item.logout {
+    color: #e74c3c;
+}
+
+.dropdown-item.logout i {
+    color: #e74c3c;
+}
+
+/* Notification Bell */
+.notification-bell {
+    position: relative;
+    cursor: pointer;
+}
+
+.notification-bell i {
+    font-size: 20px;
+    color: white;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #e74c3c;
+    color: white;
+    font-size: 10px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--clsu-green);
+}
+
+/* ========================================
+   AUTH PAGES (Login/Register)
+   ======================================== */
+
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--clsu-green), var(--clsu-green-dark));
+}
+
+.auth-card {
+    background: var(--clsu-white);
+    width: 100%;
+    max-width: 450px;
+    padding: 40px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    border-top: 6px solid var(--clsu-yellow);
+}
+
+.register-card {
+    max-width: 550px;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-header h1 {
+    color: var(--clsu-green);
+    font-size: 26px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.clsu-logo-placeholder {
+    font-size: 40px;
+    background: var(--clsu-gray);
+    width: 70px;
+    height: 70px;
+    line-height: 70px;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    border: 3px solid var(--clsu-yellow);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.auth-form .form-group {
+    margin-bottom: 20px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--clsu-green);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #eeeeee;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: var(--clsu-green);
+    background-color: #fafafa;
+}
+
+.hint {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+
+.btn {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    text-align: center;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--clsu-green);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--clsu-green-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 104, 55, 0.3);
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.btn-logout {
+    background: #e74c3c;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.btn-logout:hover {
+    background: #c0392b;
+}
+
+/* ========================================
+   ALERTS / FLASH MESSAGES
+   ======================================== */
+
+.alert {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.alert-error {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+.alert-success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+/* ========================================
+   DASHBOARD
+   ======================================== */
+
+.dashboard-wrapper {
+    padding: 40px 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.welcome-card {
+    background: var(--clsu-white);
+    padding: 60px 40px;
+    border-radius: var(--border-radius);
+    text-align: center;
+    box-shadow: var(--shadow);
+    border: 1px solid #f0f0f0;
+}
+
+.welcome-icon {
+    font-size: 60px;
+    margin-bottom: 20px;
+}
+
+.welcome-card h1 {
+    font-size: 32px;
+    color: var(--clsu-green);
+    margin-bottom: 10px;
+}
+
+.user-details {
+    background: var(--clsu-gray);
+    display: inline-block;
+    padding: 20px 40px;
+    border-radius: 10px;
+    margin: 25px 0;
+}
+
+.timestamp {
+    color: var(--clsu-green);
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+/* ========================================
+   AUTH FOOTER
+   ======================================== */
+
+.auth-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 25px;
+    font-size: 14px;
+}
+
+.auth-footer a {
+    color: var(--clsu-green);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* ========================================
+   SIDEBAR STYLES - CLSU THEME
+   ======================================== */
+
+.dashboard-container {
+    display: flex;
+    min-height: calc(100vh - 80px);
+}
+
+/* Sidebar */
+.sidebar {
+    width: 280px;
+    background: white;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 80px;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    border-right: 1px solid #eaeaea;
+}
+
+.sidebar-header {
+    padding: 25px 20px;
+    border-bottom: 1px solid #eaeaea;
+    background: linear-gradient(135deg, rgba(0,104,55,0.02), rgba(253,184,19,0.02));
+}
+
+.sidebar-header h3 {
+    color: var(--clsu-green);
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.sidebar-header p {
+    color: var(--text-light);
+    font-size: 13px;
+}
+
+.sidebar-user {
+    padding: 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eaeaea;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sidebar-user-avatar {
+    width: 45px;
+    height: 45px;
+    background: var(--clsu-green);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    border: 2px solid var(--clsu-yellow);
+}
+
+.sidebar-user-info h4 {
+    color: var(--text-dark);
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.sidebar-user-info p {
+    color: var(--clsu-green);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Sidebar Navigation */
+.sidebar-nav {
+    flex: 1;
+    padding: 20px 15px;
+}
+
+.sidebar-menu {
+    list-style: none;
+}
+
+.sidebar-menu-item {
+    margin-bottom: 5px;
+}
+
+.sidebar-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    color: var(--text-dark);
+    text-decoration: none;
+    border-radius: 10px;
+    transition: all 0.3s;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.sidebar-menu-link i {
+    width: 20px;
+    color: var(--clsu-green);
+    font-size: 16px;
+    transition: all 0.3s;
+}
+
+.sidebar-menu-link:hover {
+    background: rgba(0, 104, 55, 0.05);
+    color: var(--clsu-green);
+}
+
+.sidebar-menu-link:hover i {
+    color: var(--clsu-yellow);
+}
+
+.sidebar-menu-link.active {
+    background: var(--clsu-green);
+    color: white;
+}
+
+.sidebar-menu-link.active i {
+    color: var(--clsu-yellow);
+}
+
+/* Menu Divider */
+.sidebar-divider {
+    margin: 20px 0 15px;
+    padding: 0 15px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Badges */
+.menu-badge {
+    background: var(--clsu-yellow);
+    color: var(--clsu-green-dark);
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-left: auto;
+}
+
+.menu-badge.warning {
+    background: #e74c3c;
+    color: white;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid #eaeaea;
+}
+
+.sidebar-footer-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    color: var(--text-light);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s;
+    font-size: 13px;
+}
+
+.sidebar-footer-link i {
+    color: var(--clsu-green);
+    font-size: 14px;
+}
+
+.sidebar-footer-link:hover {
+    background: #f5f5f5;
+    color: var(--clsu-green);
+}
+
+/* Main Content (with sidebar) */
+.main-content {
+    flex: 1;
+    padding: 30px;
+    background: var(--clsu-light-bg);
+    overflow-y: auto;
+}
+
+/* Responsive Sidebar */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 240px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        top: 0;
+        border-right: none;
+        border-bottom: 1px solid #eaeaea;
+    }
+    
+    .main-content {
+        padding: 20px;
+    }
+    
+    .sidebar-header, .sidebar-user {
+        display: none;
+    }
+    
+    .sidebar-nav {
+        padding: 15px;
+    }
+    
+    .sidebar-menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .sidebar-menu-item {
+        flex: 1 1 auto;
+        margin-bottom: 0;
+    }
+    
+    .sidebar-menu-link {
+        padding: 10px;
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .sidebar-menu-link span {
+        display: none;
+    }
+    
+    .sidebar-menu-link i {
+        margin: 0;
+        font-size: 20px;
+    }
+    
+    .sidebar-divider, .sidebar-footer {
+        display: none;
+    }
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .navbar {
+        height: auto;
+        padding: 15px;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .nav-left {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .logo-container {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .institution-info {
+        text-align: center;
+    }
+    
+    .nav-right {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .dropdown-menu {
+        width: 280px;
+        right: -50px;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 30px 20px;
+    }
+    
+    .dropdown-trigger .user-info-small {
+        display: none;
+    }
+    
+    .welcome-card {
+        padding: 40px 20px;
+    }
+    
+    .welcome-card h1 {
+        font-size: 24px;
+    }
+}
