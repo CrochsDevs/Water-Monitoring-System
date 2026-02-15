@@ -1,24 +1,21 @@
 <?php
-$host = 'mysql-3c67946d-water-monitoring-system.a.aivencloud.com';
-$port = '25803';
-$dbname = 'defaultdb';
-$username = 'avnadmin';
-$password = 'AVNS_iaWyjt_7-Jxc0FpIDzG';
+$db_config = [
+    'host' => 'localhost',
+    'username' => 'root',
+    'password' => '',
+    'database' => 'water_monitoring'
+];
 
-try {
-    $pdo = new PDO(
-        "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
-        $username,
-        $password,
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::MYSQL_ATTR_SSL_CA => null,
-            PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
-            PDO::MYSQL_ATTR_SSL_CIPHER => 'REQUIRED'
-        ]
-    );
-} catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
+$conn = new mysqli(
+    $db_config['host'], 
+    $db_config['username'], 
+    $db_config['password'], 
+    $db_config['database']
+);
+
+if ($conn->connect_error) {
+    die(json_encode(['error' => 'Database connection failed']));
 }
+
+$conn->set_charset("utf8");
 ?>
