@@ -1,0 +1,23 @@
+{
+  "functions": {
+    "api/index.php": {
+      "runtime": "vercel-php@0.7.3"
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)\\.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot)",
+      "dest": "/$1.$2"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.php"
+    }
+  ],
+  "outputDirectory": ".",
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  }
+}
