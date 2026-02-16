@@ -1,3 +1,24 @@
+<!-- 
+=================================================================
+PROFILE PAGE - WATER MONITORING SYSTEM
+Central Luzon State University
+=================================================================
+
+This page allows users to:
+1. View their profile information
+2. Update their full name and email address
+3. Change their password securely
+
+The page follows the CLSU theme with green (#006837) and yellow (#fdb813) colors.
+All styles are inline to maintain consistency with the existing dashboard design.
+=================================================================
+
+In this pages i can use internal css for styling, but i will keep it minimal and 
+consistent with the overall design of the dashboard. The main focus is on 
+functionality and user experience, while still adhering to the CLSU theme.
+-->
+
+
 <?php
 // pages/account/profile.php
 require_once __DIR__ . '/../../includes/config.php';
