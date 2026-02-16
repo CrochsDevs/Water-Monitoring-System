@@ -1,11 +1,11 @@
 <?php
-// pages/dashboard.php
-require_once __DIR__ . '/../includes/config.php';
-requireLogin();
+    // pages/dashboard.php
+    require_once __DIR__ . '/../includes/config.php';
+    requireLogin();
 
-$current_user = getCurrentUser($conn);
-$page_title = 'Dashboard';
-include __DIR__ . '/../includes/header.php';
+    $current_user = getCurrentUser($conn);
+    $page_title   = 'Dashboard';
+    include __DIR__ . '/../includes/header.php';
 ?>
 
 <nav class="navbar">
@@ -45,14 +45,10 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                 </div>
 
-                <div class="dropdown-items">
-                    <a href="#" class="dropdown-item">
+               <div class="dropdown-items">
+                    <a href="account/profile.php" class="dropdown-item">  <!-- binago mula account/account.php -->
                         <i class="fas fa-user-circle"></i>
                         My Profile
-                    </a>
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-cog"></i>
-                        Account Settings
                     </a>
                     <div class="dropdown-divider"></div>
                     <a href="<?php echo BASE_URL; ?>/auth/logout.php" class="dropdown-item logout">
