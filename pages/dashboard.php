@@ -7,10 +7,19 @@
     $page_title   = 'Dashboard';
     include __DIR__ . '/../includes/header.php';
 
-    // --- REAL-TIME DATA MULA SA BAROMETERS (Naka-unit na cm) ---
-    $station_pressure  = 101; // Kasalukuyang reading sa cm
-    $tank_pressure     = 95;  // Kasalukuyang reading sa cm
-    $pipeline_pressure = 105; // Kasalukuyang reading sa cm
+    // --- FETCH LATEST READINGS FROM DATABASE ---
+    $latest = $conn->query("SELECT station_pressure, tank_pressure, pipeline_pressure FROM water_level_history ORDER BY recorded_at DESC LIMIT 1");
+    if ($latest && $latest->num_rows > 0) {
+        $lr = $latest->fetch_assoc();
+        $station_pressure  = floatval($lr['station_pressure']);
+        $tank_pressure     = floatval($lr['tank_pressure']);
+        $pipeline_pressure = floatval($lr['pipeline_pressure']);
+    } else {
+        // Fallback if no data yet
+        $station_pressure  = 101;
+        $tank_pressure     = 95;
+        $pipeline_pressure = 105;
+    }
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -264,33 +273,9 @@
     const val3 = <?php echo $pipeline_pressure; ?>;
     const maxGaugeLimit = 200; 
 
-    // --- DATA STORE PARA SA FILTERS (DAY, WEEK, MONTH, YEAR) ---
-    const filterData = {
-        day: {
-            labels: ["12 AM", "4 AM", "8 AM", "12 PM", "4 PM", "8 PM", "11 PM"],
-            b1: [98, 100, 102, 105, 101, 103, 101],
-            b2: [92, 94, 96, 99, 95, 96, 95],
-            b3: [102, 104, 106, 109, 105, 107, 105]
-        },
-        week: {
-            labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-            b1: [101, 104, 101, 99, 103, 105, 101],
-            b2: [95, 97, 96, 93, 95, 98, 95],
-            b3: [105, 108, 105, 103, 107, 109, 105]
-        },
-        month: {
-            labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
-            b1: [100, 103, 105, 102],
-            b2: [94, 96, 98, 95],
-            b3: [104, 107, 109, 106]
-        },
-        year: {
-            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-            b1: [98, 99, 101, 103, 105, 104, 102, 101, 100, 102, 103, 101],
-            b2: [92, 93, 95, 96, 98, 97, 96, 95, 94, 95, 96, 95],
-            b3: [102, 103, 105, 107, 109, 108, 106, 105, 104, 106, 107, 105]
-        }
-    };
+    // --- API URL FOR DYNAMIC DATA ---
+    const HISTORY_API = '<?php echo BASE_URL; ?>/api/history_data.php';
+    let dashboardChartData = null;
 
     // --- INITIALIZE GAUGE GENERATOR ---
     function createBarometerGauge(elementId, value, color) {
@@ -327,16 +312,16 @@
     createBarometerGauge('barometer2', val2, '#3182ce');
     createBarometerGauge('barometer3', val3, '#e53e3e');
 
-    // --- INITIALIZE HISTORICAL LINE CHART ---
+    // --- INITIALIZE HISTORICAL LINE CHART (loads from API) ---
     const ctxHistory = document.getElementById('historyChart').getContext('2d');
     let historyChart = new Chart(ctxHistory, {
         type: 'line',
         data: {
-            labels: filterData.week.labels, 
+            labels: [],
             datasets: [
                 {
                     label: 'Barometer 1 (Station)',
-                    data: filterData.week.b1,
+                    data: [],
                     borderColor: '#4CAF50',
                     backgroundColor: 'rgba(76, 175, 80, 0.04)',
                     tension: 0.2,
@@ -344,7 +329,7 @@
                 },
                 {
                     label: 'Barometer 2 (Tank)',
-                    data: filterData.week.b2,
+                    data: [],
                     borderColor: '#3182ce',
                     backgroundColor: 'rgba(49, 130, 206, 0.04)',
                     tension: 0.2,
@@ -352,7 +337,7 @@
                 },
                 {
                     label: 'Barometer 3 (Pipeline)',
-                    data: filterData.week.b3,
+                    data: [],
                     borderColor: '#e53e3e',
                     backgroundColor: 'rgba(229, 62, 62, 0.04)',
                     tension: 0.2,
@@ -372,20 +357,32 @@
         }
     });
 
+    // Load initial data (week)
+    fetchDashboardData('week');
+
+    // --- FETCH DATA FROM API ---
+    async function fetchDashboardData(filter) {
+        try {
+            const resp = await fetch(HISTORY_API + '?filter=' + filter);
+            const data = await resp.json();
+            if (data.success) {
+                dashboardChartData = data;
+                historyChart.data.labels = data.labels;
+                historyChart.data.datasets[0].data = data.barometer1.map(d => d.avg);
+                historyChart.data.datasets[1].data = data.barometer2.map(d => d.avg);
+                historyChart.data.datasets[2].data = data.barometer3.map(d => d.avg);
+                historyChart.update();
+            }
+        } catch (e) {
+            console.error('Failed to fetch dashboard data:', e);
+        }
+    }
+
     // --- DYNAMIC FILTER HANDLER FUNCTION ---
     function updateFilter(range, buttonElement) {
-        // Alisin ang active status sa lahat ng buttons at ibigay sa pinindot
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
         buttonElement.classList.add('active');
-
-        // Baguhin ang ipinapakitang data sa graph base sa pinindot
-        historyChart.data.labels = filterData[range].labels;
-        historyChart.data.datasets[0].data = filterData[range].b1;
-        historyChart.data.datasets[1].data = filterData[range].b2;
-        historyChart.data.datasets[2].data = filterData[range].b3;
-        
-        // I-render/animate muli ang chart gamit ang bagong data
-        historyChart.update();
+        fetchDashboardData(range);
     }
 </script>
 

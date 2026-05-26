@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell *)",
+      "Bash(mysql *)",
+      "Bash(php *)"
+    ]
+  },
+  "$version": 4
+}

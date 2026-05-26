@@ -33,7 +33,7 @@
             </li>
 
             <li class="sidebar-menu-item">
-                <a href="#" class="sidebar-menu-link">
+                <a href="<?php echo BASE_URL; ?>/pages/history.php" class="sidebar-menu-link <?php echo basename($_SERVER['PHP_SELF']) == 'history.php' ? 'active' : ''; ?>">
                     <i class="fas fa-water"></i>
                     <span>History</span>
                 </a>
