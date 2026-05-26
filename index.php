@@ -7,4 +7,4 @@ if (isLoggedIn()) {
 } else {
     redirect('auth/login.php');
 }
-?>
+?>s

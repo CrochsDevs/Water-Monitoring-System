@@ -41,7 +41,7 @@ include __DIR__ . '/../includes/header.php';
 <div class="auth-container">
     <div class="auth-card">
         <div class="auth-header">
-            <h1>🌿 <?php echo SITE_NAME; ?></h1>
+            <h1><?php echo SITE_NAME; ?></h1>
             <p>Welcome back! Please login to your account.</p>
         </div>
         
@@ -67,14 +67,11 @@ include __DIR__ . '/../includes/header.php';
             
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="" required>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
             </div>
             
             <button type="submit" class="btn btn-primary btn-block">Sign In</button>
-            
-            <div class="auth-footer">
-                <a href="register.php">Don't have an account? Register here</a>
-            </div>
+        
         </form>
     </div>
 </div>

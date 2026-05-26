@@ -2,7 +2,7 @@
 session_start();
 
 define('BASE_URL', '/WATER%20MONITORING%20SYSTEM');
-define('SITE_NAME', 'Water Monitoring System');
+define('SITE_NAME', 'Automated Water Monitoring System');
 
 require_once __DIR__ . '/../db/db.php';
 
