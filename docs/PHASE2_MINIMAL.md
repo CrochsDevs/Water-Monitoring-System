@@ -17,7 +17,21 @@ Only the structural and power items that can't be substituted. Everything else (
 | 5 | **Battery 12V 7AH** | Sealed lead acid | **Energy storage** — runs the system at night and on cloudy days. Without this, the system only works while the sun shines. | ₱500 |
 | 6 | **Stilling Well 4" PVC Pipe** | 2m length (cut to size on-site) | **Accurate readings** — dampens water ripples that would otherwise give erratic sensor data. The difference between a working and unreliable system. | ₱150 |
 | 7 | **Solar PV Cable 4mm² + Fuse + Ring Terminals** | 5m + 5A blade fuse + connectors | **Wiring** — needed to connect panel → charge controller → battery. Can't test power without wire and fuse. | ₱440 |
-| | **TOTAL** | | | **₱3,740** |
+| | **SUBTOTAL** | | | **₱3,740** |
+
+### Mounting Hardware — Also Buy Now
+
+These attach everything to the pipe. Cheap but essential for assembly.
+
+| # | Item | Qty | Est. ₱ | Search Term |
+|---|------|:---:|:------:|-------------|
+| 8 | **Stainless steel pipe clamps 3.5"** (90mm) | 6 | ₱150 | "304 stainless steel pipe clamp 3 inch" on Shopee |
+| 9 | **Solar panel Z-bracket** or **U-bolt 3"** | 1 set | ₱150 | "solar panel z bracket adjustable tilt" or "U-bolt 3 inch galvanized" at hardware |
+| 10 | **Stainless steel M6 bolts + nuts** | 8 pcs | ₱60 | "stainless steel hex bolt M6" at hardware |
+| 11 | **PVC saddle clamp 4"** (for stilling well) | 3 | ₱90 | "4 inch PVC pipe clamp saddle" at hardware |
+| 12 | **Small plastic tool box** (for battery) | 1 | ₱150 | Any hardware store |
+| | **MOUNTING SUBTOTAL** | | **₱600** | |
+| | **GRAND TOTAL** | | **₱4,340** | |
 
 ---
 
@@ -25,8 +39,8 @@ Only the structural and power items that can't be substituted. Everything else (
 
 | Item | Reason It Can Wait |
 |------|--------------------|
-| Concrete mix (₱150) | Can use temporary bracing or buy on deployment day |
-| PVC conduit 3/4" (₱150) | Tape the cable to the pole temporarily |
+| Concrete mix (₱150) | Can brace the pipe with rocks/stakes temporarily |
+| PVC conduit 3/4" (₱150) | Tape cable to the pole temporarily |
 | Cable glands (₱150) | Drill hole + silicone sealant works as temporary fix |
 | Anti-rust paint (₱150) | Pipe won't rust noticeably in the first month |
 | Silicone sealant (₱120) | May already have some |
