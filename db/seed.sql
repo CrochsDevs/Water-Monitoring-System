@@ -42,7 +42,7 @@ BEGIN
             END;
 
             INSERT INTO water_level_readings
-                (device_id, water_level_cm, distance_cm, battery_v, signal, alert, reading_mode, received_at)
+                (device_id, water_level_cm, distance_cm, battery_v, signal_strength, alert, reading_mode, received_at)
             VALUES
                 ('RF01', ROUND(@level, 1), ROUND(@dist, 1), ROUND(@batt, 2), @sig, @alert, 'serial_usb', ts);
 

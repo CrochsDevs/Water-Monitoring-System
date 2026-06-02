@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS water_level_readings (
     water_level_cm DECIMAL(8,2) NOT NULL COMMENT 'Water level in cm (height from field bottom)',
     distance_cm DECIMAL(8,2) NOT NULL COMMENT 'Distance from sensor to water surface',
     battery_v DECIMAL(5,2) NOT NULL COMMENT 'Battery voltage',
-    signal INT NOT NULL DEFAULT 0 COMMENT 'GSM/LTE signal strength (0-31)',
+    signal_strength INT NOT NULL DEFAULT 0 COMMENT 'GSM/LTE signal strength (0-31)',
     alert VARCHAR(20) DEFAULT NULL COMMENT 'Alert type: high_water, low_water, sensor_error, low_battery',
     reading_mode ENUM('serial_usb', 'lte', 'sms') NOT NULL DEFAULT 'serial_usb',
     received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

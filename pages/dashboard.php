@@ -8,13 +8,13 @@
     include __DIR__ . '/../includes/header.php';
 
     // --- FETCH LATEST READING ---
-    $latest = $conn->query("SELECT water_level_cm, distance_cm, battery_v, signal, alert, received_at FROM water_level_readings ORDER BY received_at DESC LIMIT 1");
+    $latest = $conn->query("SELECT water_level_cm, distance_cm, battery_v, signal_strength, alert, received_at FROM water_level_readings ORDER BY received_at DESC LIMIT 1");
     if ($latest && $latest->num_rows > 0) {
         $lr = $latest->fetch_assoc();
         $current_water_level = floatval($lr['water_level_cm']);
         $current_distance    = floatval($lr['distance_cm']);
         $current_battery     = floatval($lr['battery_v']);
-        $current_signal      = intval($lr['signal']);
+        $current_signal      = intval($lr['signal_strength']);
         $current_alert       = $lr['alert'];
         $last_update         = $lr['received_at'];
     } else {

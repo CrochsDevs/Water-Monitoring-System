@@ -118,7 +118,7 @@ if ($conn->connect_error) {
 // --- Insert the reading ---
 $stmt = $conn->prepare("
     INSERT INTO water_level_readings
-        (device_id, water_level_cm, distance_cm, battery_v, signal, alert, reading_mode, received_at)
+        (device_id, water_level_cm, distance_cm, battery_v, signal_strength, alert, reading_mode, received_at)
     VALUES
         (?, ?, ?, ?, ?, ?, ?, NOW())
 ");
@@ -130,7 +130,7 @@ if (!$stmt) {
     exit();
 }
 
-$stmt->bind_param("sdddis", $device_id, $water_level, $distance, $battery, $signal, $alert, $reading_mode);
+$stmt->bind_param("sdddiss", $device_id, $water_level, $distance, $battery, $signal, $alert, $reading_mode);
 
 if ($stmt->execute()) {
     $inserted_id = $stmt->insert_id;
