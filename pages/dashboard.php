@@ -7,45 +7,57 @@
     $page_title   = 'Dashboard';
     include __DIR__ . '/../includes/header.php';
 
-    // --- FETCH LATEST READING ---
-    $latest = $conn->query("SELECT water_level_cm, distance_cm, battery_v, signal_strength, alert, received_at FROM water_level_readings ORDER BY received_at DESC LIMIT 1");
-    if ($latest && $latest->num_rows > 0) {
-        $lr = $latest->fetch_assoc();
-        $current_water_level = floatval($lr['water_level_cm']);
-        $current_distance    = floatval($lr['distance_cm']);
-        $current_battery     = floatval($lr['battery_v']);
-        $current_signal      = intval($lr['signal_strength']);
-        $current_alert       = $lr['alert'];
-        $last_update         = $lr['received_at'];
-    } else {
-        // Fallback
-        $current_water_level = 12.5;
-        $current_distance    = 187.5;
-        $current_battery     = 12.4;
-        $current_signal      = 18;
-        $current_alert       = null;
-        $last_update         = 'No data yet';
+    $devices = ['RF01', 'RF02', 'RF03'];
+
+    // --- FETCH LATEST READING PER DEVICE ---
+    $device_readings = [];
+    $latest_ts = 'No data yet';
+    foreach ($devices as $did) {
+        $res = $conn->query("SELECT water_level_cm, distance_cm, alert, received_at FROM water_level_readings WHERE device_id = '$did' ORDER BY received_at DESC LIMIT 1");
+        if ($res && $res->num_rows > 0) {
+            $r = $res->fetch_assoc();
+            $device_readings[$did] = [
+                'level'     => floatval($r['water_level_cm']),
+                'distance'  => floatval($r['distance_cm']),
+                'alert'     => $r['alert'],
+                'updated'   => $r['received_at']
+            ];
+            if (strtotime($r['received_at']) > strtotime($latest_ts)) {
+                $latest_ts = $r['received_at'];
+            }
+        } else {
+            $device_readings[$did] = [
+                'level'     => null,
+                'distance'  => null,
+                'alert'     => null,
+                'updated'   => null
+            ];
+        }
     }
 
     // --- FETCH 24-HOUR STATS ---
-    $stats = $conn->query("SELECT 
-        AVG(water_level_cm) as avg_level,
-        MIN(water_level_cm) as min_level,
-        MAX(water_level_cm) as max_level,
-        AVG(battery_v) as avg_battery,
-        COUNT(*) as total_readings
-        FROM water_level_readings 
-        WHERE received_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)");
-    
-    $stats_row = $stats->fetch_assoc();
-    $avg_level_24h  = $stats_row ? round(floatval($stats_row['avg_level']), 1) : $current_water_level;
-    $min_level_24h  = $stats_row ? round(floatval($stats_row['min_level']), 1) : 0;
-    $max_level_24h  = $stats_row ? round(floatval($stats_row['max_level']), 1) : $current_water_level;
-    $avg_batt_24h   = $stats_row ? round(floatval($stats_row['avg_battery']), 1) : $current_battery;
-    $total_readings = $stats_row ? intval($stats_row['total_readings']) : 0;
+    $stats_all = [];
+    foreach ($devices as $did) {
+        $s = $conn->query("SELECT 
+            AVG(water_level_cm) as avg_level,
+            MIN(water_level_cm) as min_level,
+            MAX(water_level_cm) as max_level,
+            COUNT(*) as readings
+            FROM water_level_readings 
+            WHERE device_id = '$did' AND received_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)");
+        if ($s) {
+            $row = $s->fetch_assoc();
+            $stats_all[$did] = [
+                'avg'  => $row && $row['avg_level'] ? round(floatval($row['avg_level']), 1) : '--',
+                'min'  => $row && $row['min_level'] ? round(floatval($row['min_level']), 1) : '--',
+                'max'  => $row && $row['max_level'] ? round(floatval($row['max_level']), 1) : '--',
+                'cnt'  => $row ? intval($row['readings']) : 0
+            ];
+        }
+    }
 
     // --- FETCH RECENT ALERTS ---
-    $alerts = $conn->query("SELECT water_level_cm, alert, received_at FROM water_level_readings WHERE alert IS NOT NULL ORDER BY received_at DESC LIMIT 5");
+    $alerts = $conn->query("SELECT device_id, water_level_cm, alert, received_at FROM water_level_readings WHERE alert IS NOT NULL ORDER BY received_at DESC LIMIT 10");
 ?>
 
 <style>
@@ -299,86 +311,61 @@
             <h2 style="color: #2d3748; margin: 0;">
                 <i class="fas fa-water" style="color: #3182ce;"></i> 
                 Water Level Monitor
+                <span style="font-size: 14px; color: #718096; font-weight: 500; margin-left: 10px;">RF01 · RF02 · RF03</span>
             </h2>
             <div style="font-size: 13px; color: #718096;">
-                <i class="fas fa-sync-alt"></i> Last update: <?php echo date('M d, Y h:i A', strtotime($last_update)); ?>
-                <span style="margin-left: 10px; background: #edf2f7; padding: 4px 10px; border-radius: 12px;">
-                    Device: RF01
-                </span>
-                <span style="margin-left: 10px; background: #edf2f7; padding: 4px 10px; border-radius: 12px;">
-                    Mode: USB Serial
-                </span>
+                <i class="fas fa-sync-alt"></i> Latest: <?php echo date('M d, Y h:i A', strtotime($latest_ts)); ?>
             </div>
         </div>
 
-        <!-- Stats Grid -->
+        <!-- Device Stats Grid -->
         <div class="stats-grid">
-            <div class="stat-card water-level">
-                <div class="stat-icon">💧</div>
-                <div class="stat-value"><?php echo $current_water_level; ?> <span class="stat-unit">cm</span></div>
-                <div class="stat-label">Current Water Level</div>
-                <div class="water-level-gauge">
+            <?php foreach ($devices as $did): 
+                $dr = $device_readings[$did];
+                $ds = $stats_all[$did];
+                $field_colors = ['RF01' => '#3182ce', 'RF02' => '#38a169', 'RF03' => '#d69e2e'];
+                $color = $field_colors[$did];
+            ?>
+            <div class="stat-card" style="border-top: 4px solid <?php echo $color; ?>;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                    <div>
+                        <div style="font-size: 14px; font-weight: 700; color: <?php echo $color; ?>;"><?php echo $did; ?></div>
+                        <div style="font-size: 11px; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Rice Field Monitor</div>
+                    </div>
+                    <div style="font-size: 22px;">💧</div>
+                </div>
+                <div class="stat-value" style="font-size: 28px;">
+                    <?php echo $dr['level'] !== null ? $dr['level'] : '--'; ?> <span class="stat-unit">cm</span>
+                </div>
+                <div class="stat-label" style="font-size: 11px;">Latest Water Level Retrieved</div>
+                <div class="water-level-gauge" style="margin: 8px auto 0;">
                     <?php 
-                        $pct = min(100, ($current_water_level / 30) * 100);
-                        if ($pct < 10) $pct = 10; // min width for visibility
+                        $lv = $dr['level'];
+                        $pct = $lv !== null ? min(100, ($lv / 30) * 100) : 0;
+                        if ($pct < 10 && $lv !== null) $pct = 10;
                     ?>
-                    <div class="water-level-fill" style="width: <?php echo $pct; ?>%;">
-                        <span><?php echo $current_water_level; ?>cm</span>
+                    <div class="water-level-fill" style="width: <?php echo $pct; ?>%; background: <?php echo $color; ?>;">
+                        <span><?php echo $lv !== null ? $lv . 'cm' : '--'; ?></span>
                     </div>
                 </div>
-            </div>
-
-            <div class="stat-card battery">
-                <div class="stat-icon">🔋</div>
-                <div class="stat-value"><?php echo $current_battery; ?> <span class="stat-unit">V</span></div>
-                <div class="stat-label">Battery Voltage</div>
-                <div style="font-size: 12px; color: #718096; margin-top: 5px;">
-                    24h avg: <?php echo $avg_batt_24h; ?>V
+                <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: #718096;">
+                    <span>24h avg: <strong><?php echo $ds['avg']; ?> cm</strong></span>
+                    <span>
+                        <?php if ($dr['alert']): ?>
+                            <span class="alert-badge <?php echo $dr['alert']; ?>" style="font-size: 10px;">
+                                <?php echo str_replace('_', ' ', $dr['alert']); ?>
+                            </span>
+                        <?php else: ?>
+                            <span style="color: #38a169;">✓ OK</span>
+                        <?php endif; ?>
+                    </span>
+                </div>
+                <div style="font-size: 11px; color: #a0aec0; margin-top: 5px;">
+                    <?php echo $dr['updated'] ? date('M d, h:i A', strtotime($dr['updated'])) : 'No data'; ?>
+                    · <?php echo $ds['cnt']; ?> readings
                 </div>
             </div>
-
-            <div class="stat-card signal">
-                <div class="stat-icon">📶</div>
-                <div class="stat-value"><?php echo $current_signal; ?> <span class="stat-unit">/31</span></div>
-                <div class="stat-label">Signal Strength</div>
-                <div style="font-size: 12px; color: #718096; margin-top: 5px;">
-                    <?php echo $total_readings; ?> readings (24h)
-                </div>
-            </div>
-
-            <div class="stat-card alerts">
-                <div class="stat-icon">🔔</div>
-                <div class="stat-value" style="font-size: 24px;">
-                    <?php if ($current_alert): ?>
-                        <span class="alert-badge <?php echo $current_alert; ?>">
-                            <?php echo str_replace('_', ' ', $current_alert); ?>
-                        </span>
-                    <?php else: ?>
-                        <span style="color: #38a169;">✓ All Good</span>
-                    <?php endif; ?>
-                </div>
-                <div class="stat-label">Latest Alert</div>
-            </div>
-        </div>
-
-        <!-- 24h Statistics Row -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px;">
-            <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #eef2f5; text-align: center;">
-                <div style="font-size: 11px; color: #718096; text-transform: uppercase; font-weight: 600;">24h Avg Level</div>
-                <div style="font-size: 20px; font-weight: 700; color: #2d3748;"><?php echo $avg_level_24h; ?> cm</div>
-            </div>
-            <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #eef2f5; text-align: center;">
-                <div style="font-size: 11px; color: #718096; text-transform: uppercase; font-weight: 600;">24h Min</div>
-                <div style="font-size: 20px; font-weight: 700; color: #2d3748;"><?php echo $min_level_24h; ?> cm</div>
-            </div>
-            <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #eef2f5; text-align: center;">
-                <div style="font-size: 11px; color: #718096; text-transform: uppercase; font-weight: 600;">24h Max</div>
-                <div style="font-size: 20px; font-weight: 700; color: #2d3748;"><?php echo $max_level_24h; ?> cm</div>
-            </div>
-            <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #eef2f5; text-align: center;">
-                <div style="font-size: 11px; color: #718096; text-transform: uppercase; font-weight: 600;">Field Depth</div>
-                <div style="font-size: 20px; font-weight: 700; color: #2d3748;">200 cm</div>
-            </div>
+            <?php endforeach; ?>
         </div>
 
         <!-- History Chart -->
@@ -409,6 +396,7 @@
                                     <?php echo str_replace('_', ' ', $alert_row['alert']); ?>
                                 </span>
                                 <strong><?php echo $alert_row['water_level_cm']; ?> cm</strong>
+                                <span style="color: #718096; font-size: 11px; margin-left: 6px;">[<?php echo $alert_row['device_id']; ?>]</span>
                             </span>
                             <span style="color: #718096; font-size: 12px;">
                                 <?php echo date('M d, h:i A', strtotime($alert_row['received_at'])); ?>
@@ -427,6 +415,11 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const HISTORY_API = '<?php echo BASE_URL; ?>/api/history_data.php';
+    const DEVICE_COLORS = {
+        RF01: { border: '#3182ce', bg: 'rgba(49, 130, 206, 0.08)' },
+        RF02: { border: '#38a169', bg: 'rgba(56, 161, 105, 0.08)' },
+        RF03: { border: '#d69e2e', bg: 'rgba(214, 158, 46, 0.08)' }
+    };
     let historyChart = null;
 
     // Initialize chart
@@ -438,12 +431,32 @@
                 labels: [],
                 datasets: [
                     {
-                        label: 'Water Level (cm)',
+                        label: 'RF01',
                         data: [],
-                        borderColor: '#3182ce',
-                        backgroundColor: 'rgba(49, 130, 206, 0.08)',
+                        borderColor: DEVICE_COLORS.RF01.border,
+                        backgroundColor: DEVICE_COLORS.RF01.bg,
                         tension: 0.3,
-                        fill: true,
+                        fill: false,
+                        borderWidth: 2,
+                        pointRadius: 2
+                    },
+                    {
+                        label: 'RF02',
+                        data: [],
+                        borderColor: DEVICE_COLORS.RF02.border,
+                        backgroundColor: DEVICE_COLORS.RF02.bg,
+                        tension: 0.3,
+                        fill: false,
+                        borderWidth: 2,
+                        pointRadius: 2
+                    },
+                    {
+                        label: 'RF03',
+                        data: [],
+                        borderColor: DEVICE_COLORS.RF03.border,
+                        backgroundColor: DEVICE_COLORS.RF03.bg,
+                        tension: 0.3,
+                        fill: false,
                         borderWidth: 2,
                         pointRadius: 2
                     }
@@ -472,14 +485,16 @@
         });
     }
 
-    // Fetch and update chart
+    // Fetch and update chart with all 3 device lines
     async function fetchDashboardData(filter) {
         try {
             const resp = await fetch(HISTORY_API + '?filter=' + filter);
             const data = await resp.json();
             if (data.success) {
                 historyChart.data.labels = data.labels;
-                historyChart.data.datasets[0].data = data.water_level.map(d => d.avg);
+                historyChart.data.datasets[0].data = data.rf01.map(d => d.avg);
+                historyChart.data.datasets[1].data = data.rf02.map(d => d.avg);
+                historyChart.data.datasets[2].data = data.rf03.map(d => d.avg);
                 historyChart.update();
             }
         } catch (e) {

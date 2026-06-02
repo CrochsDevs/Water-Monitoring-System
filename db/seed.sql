@@ -22,31 +22,63 @@ BEGIN
 
     -- Check if data already exists
     SET @existing = (SELECT COUNT(*) FROM water_level_readings);
-    IF @existing > 0 THEN
+    IF @existing > 1500 THEN
         SELECT CONCAT('Data already exists (', @existing, ' rows). Skipping seed.') AS message;
     ELSE
+        -- Seed RF01
+        SET @dev = 'RF01';
+        SET @base_level = 12.5;
+        SET counter = 0;
         SET ts = NOW() - INTERVAL 7 DAY;
-
-        WHILE counter < total_rows DO
-            -- Add some realistic variation
+        WHILE counter < 500 DO
             SET @hour_factor = SIN(2 * PI() * HOUR(ts) / 24) * 2.0;
             SET @noise = (RAND() - 0.5) * 3.0;
-            SET @level = GREATEST(0, base_level + @hour_factor + @noise);
-            SET @batt = GREATEST(11.0, base_battery - (counter / total_rows) * 1.2 + (RAND() - 0.5) * 0.3);
+            SET @level = GREATEST(0, @base_level + @hour_factor + @noise);
+            SET @batt = GREATEST(11.0, 12.4 - (counter / 500) * 1.2 + (RAND() - 0.5) * 0.3);
             SET @dist = 200.0 - @level;
             SET @sig = FLOOR(15 + RAND() * 12);
-            SET @alert = CASE
-                WHEN @level > 18 THEN 'high_water'
-                WHEN @level < 3 THEN 'low_water'
-                ELSE NULL
-            END;
+            SET @alert = CASE WHEN @level > 18 THEN 'high_water' WHEN @level < 3 THEN 'low_water' ELSE NULL END;
+            INSERT INTO water_level_readings (device_id, water_level_cm, distance_cm, battery_v, signal_strength, alert, reading_mode, received_at)
+            VALUES (@dev, ROUND(@level, 1), ROUND(@dist, 1), ROUND(@batt, 2), @sig, @alert, 'lte', ts);
+            SET ts = ts + INTERVAL 20 MINUTE;
+            SET counter = counter + 1;
+        END WHILE;
 
-            INSERT INTO water_level_readings
-                (device_id, water_level_cm, distance_cm, battery_v, signal_strength, alert, reading_mode, received_at)
-            VALUES
-                ('RF01', ROUND(@level, 1), ROUND(@dist, 1), ROUND(@batt, 2), @sig, @alert, 'serial_usb', ts);
+        -- Seed RF02 (slightly different pattern — shallower field, different base level)
+        SET @dev = 'RF02';
+        SET @base_level = 8.0;
+        SET counter = 0;
+        SET ts = NOW() - INTERVAL 7 DAY;
+        WHILE counter < 500 DO
+            SET @hour_factor = SIN(2 * PI() * HOUR(ts) / 24 + 1) * 1.5;
+            SET @noise = (RAND() - 0.5) * 2.5;
+            SET @level = GREATEST(0, @base_level + @hour_factor + @noise);
+            SET @batt = GREATEST(11.0, 12.6 - (counter / 500) * 1.0 + (RAND() - 0.5) * 0.2);
+            SET @dist = 200.0 - @level;
+            SET @sig = FLOOR(18 + RAND() * 10);
+            SET @alert = CASE WHEN @level > 18 THEN 'high_water' WHEN @level < 3 THEN 'low_water' ELSE NULL END;
+            INSERT INTO water_level_readings (device_id, water_level_cm, distance_cm, battery_v, signal_strength, alert, reading_mode, received_at)
+            VALUES (@dev, ROUND(@level, 1), ROUND(@dist, 1), ROUND(@batt, 2), @sig, @alert, 'lte', ts);
+            SET ts = ts + INTERVAL 20 MINUTE;
+            SET counter = counter + 1;
+        END WHILE;
 
-            SET ts = ts + INTERVAL 5 MINUTE;
+        -- Seed RF03 (deeper field, higher base level)
+        SET @dev = 'RF03';
+        SET @base_level = 16.0;
+        SET counter = 0;
+        SET ts = NOW() - INTERVAL 7 DAY;
+        WHILE counter < 500 DO
+            SET @hour_factor = SIN(2 * PI() * HOUR(ts) / 24 + 2) * 1.8;
+            SET @noise = (RAND() - 0.5) * 2.0;
+            SET @level = GREATEST(0, @base_level + @hour_factor + @noise);
+            SET @batt = GREATEST(11.0, 12.2 - (counter / 500) * 1.5 + (RAND() - 0.5) * 0.3);
+            SET @dist = 200.0 - @level;
+            SET @sig = FLOOR(12 + RAND() * 14);
+            SET @alert = CASE WHEN @level > 18 THEN 'high_water' WHEN @level < 3 THEN 'low_water' ELSE NULL END;
+            INSERT INTO water_level_readings (device_id, water_level_cm, distance_cm, battery_v, signal_strength, alert, reading_mode, received_at)
+            VALUES (@dev, ROUND(@level, 1), ROUND(@dist, 1), ROUND(@batt, 2), @sig, @alert, 'lte', ts);
+            SET ts = ts + INTERVAL 20 MINUTE;
             SET counter = counter + 1;
         END WHILE;
 

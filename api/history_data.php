@@ -3,9 +3,7 @@
  * api/history_data.php
  * Returns filtered water level reading history as JSON.
  * Used by the dashboard charts (Chart.js).
- *
- * This replaces the old barometer-pressure approach with
- * actual water level data from the Arduino sensors.
+ * Now returns data for all 3 devices (RF01, RF02, RF03).
  */
 
 header('Content-Type: application/json');
@@ -13,37 +11,36 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../includes/config.php';
 requireLogin();
 
-$filter = isset($_GET['filter']) ? $_GET['filter'] : 'week';
-$device = isset($_GET['device']) ? trim($_GET['device']) : 'RF01';
+$filter  = isset($_GET['filter']) ? $_GET['filter'] : 'week';
+$devices = ['RF01', 'RF02', 'RF03'];
 
-$where  = "WHERE device_id = '" . $conn->real_escape_string($device) . "'";
+$where_base = '';
 $group  = '';
 $labels = [];
-$data_level = [];
-$data_batt  = [];
+$all_device_data = [];
 
 switch ($filter) {
     case 'hour':
         $day   = isset($_GET['day']) ? $_GET['day'] : date('Y-m-d');
-        $where .= " AND received_at BETWEEN '{$day} 00:00:00' AND '{$day} 23:59:59'";
+        $where_base = "AND received_at BETWEEN '{$day} 00:00:00' AND '{$day} 23:59:59'";
         $group  = "GROUP BY HOUR(received_at)";
         $label_fn = "HOUR(received_at)";
         break;
 
     case 'day':
-        $where .= " AND received_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+        $where_base = "AND received_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
         $group  = "GROUP BY DATE(received_at)";
         $label_fn = "DATE(received_at)";
         break;
 
     case 'week':
-        $where .= " AND received_at >= DATE_SUB(NOW(), INTERVAL 84 DAY)";
+        $where_base = "AND received_at >= DATE_SUB(NOW(), INTERVAL 84 DAY)";
         $group  = "GROUP BY YEARWEEK(received_at, 1)";
         $label_fn = "YEARWEEK(received_at, 1)";
         break;
 
     case 'month':
-        $where .= " AND received_at >= DATE_SUB(NOW(), INTERVAL 365 DAY)";
+        $where_base = "AND received_at >= DATE_SUB(NOW(), INTERVAL 365 DAY)";
         $group  = "GROUP BY YEAR(received_at), MONTH(received_at)";
         $label_fn = "DATE_FORMAT(received_at, '%Y-%m')";
         break;
@@ -54,74 +51,105 @@ switch ($filter) {
         break;
 
     default:
-        $where .= " AND received_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+        $where_base = "AND received_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
         $group  = "GROUP BY YEARWEEK(received_at, 1)";
         $label_fn = "YEARWEEK(received_at, 1)";
         break;
 }
 
-$sql = "SELECT 
-            {$label_fn} as label_val,
-            AVG(water_level_cm) as avg_level,
-            MIN(water_level_cm) as min_level,
-            MAX(water_level_cm) as max_level,
-            AVG(battery_v) as avg_battery,
-            MIN(battery_v) as min_battery,
-            COUNT(*) as readings
-        FROM water_level_readings
-        {$where}
-        {$group}
-        ORDER BY label_val ASC";
+// Fetch data for each device
+foreach ($devices as $device) {
+    $sql = "SELECT 
+                {$label_fn} as label_val,
+                AVG(water_level_cm) as avg_level,
+                MIN(water_level_cm) as min_level,
+                MAX(water_level_cm) as max_level,
+                COUNT(*) as readings
+            FROM water_level_readings
+            WHERE device_id = '" . $conn->real_escape_string($device) . "' {$where_base}
+            {$group}
+            ORDER BY label_val ASC";
 
-$result = $conn->query($sql);
+    $result = $conn->query($sql);
 
-if (!$result) {
-    echo json_encode(['error' => 'Query failed: ' . $conn->error]);
-    exit();
+    if (!$result) {
+        echo json_encode(['error' => 'Query failed: ' . $conn->error]);
+        exit();
+    }
+
+    $data_points = [];
+    while ($row = $result->fetch_assoc()) {
+        $data_points[] = [
+            'label' => $row['label_val'],
+            'avg'   => round(floatval($row['avg_level']), 1),
+            'min'   => round(floatval($row['min_level']), 1),
+            'max'   => round(floatval($row['max_level']), 1)
+        ];
+    }
+    $all_device_data[$device] = $data_points;
 }
 
-while ($row = $result->fetch_assoc()) {
-    // Format label based on filter type
+// Build labels from the device with the most data points
+$label_map = [];
+foreach ($all_device_data as $did => $points) {
+    foreach ($points as $p) {
+        $label_map[$p['label']] = true;
+    }
+}
+$label_keys = array_keys($label_map);
+sort($label_keys);
+
+// Format labels based on filter
+$labels = [];
+foreach ($label_keys as $lk) {
     switch ($filter) {
         case 'hour':
-            $labels[] = sprintf('%02d:00', intval($row['label_val']));
+            $labels[] = sprintf('%02d:00', intval($lk));
             break;
         case 'day':
-            $labels[] = date('M d', strtotime($row['label_val']));
+            $labels[] = date('M d', strtotime($lk));
             break;
         case 'week':
-            $yw = strval($row['label_val']);
+            $yw = strval($lk);
             $y = substr($yw, 0, 4);
             $w = substr($yw, 4);
             $labels[] = 'W' . $w;
             break;
         case 'month':
-            $labels[] = date('M Y', strtotime($row['label_val'] . '-01'));
+            $labels[] = date('M Y', strtotime($lk . '-01'));
             break;
         case 'year':
-            $labels[] = $row['label_val'];
+            $labels[] = $lk;
             break;
         default:
-            $labels[] = $row['label_val'];
+            $labels[] = $lk;
     }
+}
 
-    $data_level[] = [
-        'avg' => round(floatval($row['avg_level']), 1),
-        'min' => round(floatval($row['min_level']), 1),
-        'max' => round(floatval($row['max_level']), 1)
-    ];
-    $data_batt[] = [
-        'avg' => round(floatval($row['avg_battery']), 2),
-        'min' => round(floatval($row['min_battery']), 2)
-    ];
+// Build aligned data arrays (one per device, aligned to labels)
+$aligned = [];
+foreach ($devices as $did) {
+    $aligned[$did] = [];
+    $points_by_label = [];
+    foreach ($all_device_data[$did] as $p) {
+        $points_by_label[$p['label']] = $p;
+    }
+    foreach ($label_keys as $lk) {
+        if (isset($points_by_label[$lk])) {
+            $aligned[$did][] = $points_by_label[$lk];
+        } else {
+            $aligned[$did][] = ['avg' => null, 'min' => null, 'max' => null];
+        }
+    }
 }
 
 echo json_encode([
     'success'    => true,
     'filter'     => $filter,
-    'device'     => $device,
+    'devices'    => $devices,
     'labels'     => $labels,
-    'water_level' => $data_level,
-    'battery'    => $data_batt,
+    'rf01'       => $aligned['RF01'],
+    'rf02'       => $aligned['RF02'],
+    'rf03'       => $aligned['RF03'],
     'count'      => count($labels)
 ]);
