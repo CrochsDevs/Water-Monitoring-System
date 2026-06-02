@@ -106,4 +106,4 @@ function isStrongPassword(string $password): array {
         'errors' => $errors
     ];
 }
-?>
+}

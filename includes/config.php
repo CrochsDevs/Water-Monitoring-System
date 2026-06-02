@@ -46,4 +46,3 @@ function sanitize($data) {
 }
 
 global $conn;
-?>
