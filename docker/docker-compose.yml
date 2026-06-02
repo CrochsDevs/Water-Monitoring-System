@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # ==========================================================
+  # MySQL Database
+  # ==========================================================
+  db:
+    image: mysql:8.0
+    container_name: water-monitor-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: water_monitor_root
+      MYSQL_DATABASE: water_monitoring
+      MYSQL_USER: water_monitor
+      MYSQL_PASSWORD: water_monitor_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - water-net
+
+  # ==========================================================
+  # PHP-FPM (App Server)
+  # ==========================================================
+  app:
+    image: php:8.2-fpm
+    container_name: water-monitor-app
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_USER: water_monitor
+      DB_PASSWORD: water_monitor_pass
+      DB_NAME: water_monitoring
+    volumes:
+      - ../:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - water-net
+
+  # ==========================================================
+  # Nginx Web Server
+  # ==========================================================
+  web:
+    image: nginx:stable-alpine
+    container_name: water-monitor-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ../:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - water-net
+
+  # ==========================================================
+  # phpMyAdmin (optional — dev tool)
+  # ==========================================================
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: water-monitor-pma
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 100M
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    networks:
+      - water-net
+
+volumes:
+  mysql_data:
+
+networks:
+  water-net:
+    driver: bridge

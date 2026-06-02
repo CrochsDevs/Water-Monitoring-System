@@ -1,10 +1,11 @@
 <?php
 // db/db.php - Pure database connection only
+// Uses Docker environment variables, falls back to dev defaults
 $db_config = [
-    'host' => 'localhost',
-    'username' => 'root',
-    'password' => '',
-    'database' => 'water_monitoring'
+    'host'     => getenv('DB_HOST')     ?: 'localhost',
+    'username' => getenv('DB_USER')     ?: 'root',
+    'password' => getenv('DB_PASSWORD') ?: '',
+    'database' => getenv('DB_NAME')     ?: 'water_monitoring'
 ];
 
 $conn = new mysqli(

@@ -101,7 +101,7 @@ const char ALERT_PHONE[]         = "+639XXXXXXXXX";  // Replace with farmer's ph
 const String DEVICE_ID           = "RF01";           // Unique device identifier
 
 // HTTP endpoint — Arduino sends JSON POST to your dashboard server
-const char SERVER_URL[]          = "http://your-server.com/api/reading.php";
+const char SERVER_URL[]          = "http://192.168.1.31:8080/api/reading.php";
 const int  HTTP_TIMEOUT          = 30000;      // 30s max for HTTP operation (4G can be slower to connect)
 const int  HTTP_RETRY_COUNT      = 2;          // Retry HTTP twice before falling back to SMS
 
@@ -238,6 +238,9 @@ void measureWaterLevel() {
     Serial.println(F("[ERROR] No valid ultrasonic readings!"));
     currentWaterLevel = -1.0;
   }
+
+  // Output JSON over USB Serial for the Python serial bridge
+  serialPrintJson();
 }
 
 float readUltrasonicDistance() {
@@ -298,6 +301,34 @@ void updateLCD() {
   } else {
     lcd.print("No 4G ");
   }
+}
+
+// ============================================================
+// USB SERIAL — JSON OUTPUT (for Python serial bridge)
+// ============================================================
+void serialPrintJson() {
+  // Output a JSON line over USB Serial that the serial_bridge.py can parse
+  Serial.print("{\"water_level_cm\":");
+  Serial.print(currentWaterLevel, 1);
+  Serial.print(",\"distance_cm\":");
+  Serial.print(currentDistance, 1);
+  Serial.print(",\"battery_v\":");
+  Serial.print(batteryVoltage, 1);
+  Serial.print(",\"signal\":");
+  Serial.print(moduleSignal);
+  Serial.print(",\"alert\":");
+  if (currentWaterLevel >= ALERT_HIGH_CM) {
+    Serial.print("\"high_water\"");
+  } else if (currentWaterLevel <= ALERT_LOW_CM && currentWaterLevel >= 0) {
+    Serial.print("\"low_water\"");
+  } else if (currentWaterLevel < 0) {
+    Serial.print("\"sensor_error\"");
+  } else if (batteryVoltage > 0 && batteryVoltage < BATTERY_CRITICAL) {
+    Serial.print("\"low_battery\"");
+  } else {
+    Serial.print("null");
+  }
+  Serial.println("}");
 }
 
 // ============================================================

@@ -1,0 +1,5 @@
+# Water Monitoring System — .gitignore
+.DS_Store
+*.log
+.env
+docker/mysql_data/
