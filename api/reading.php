@@ -2,61 +2,63 @@
 /**
  * api/reading.php
  * ================
- * Accepts water level readings from Arduino (via USB-serial bridge
- * in the future, or directly from the Air780E/SIM800L module).
+ * Accepts water level readings from Arduino via:
+ *   - POST with JSON body (preferred)
+ *   - GET with query parameters (fallback for modules with buggy HTTP stacks)
  *
  * POST /api/reading.php
  * Content-Type: application/json
+ * Body: { "device_id": "RF01", "water_level_cm": 12.5, ... }
  *
- * Body:
- * {
- *   "device_id": "RF01",
- *   "water_level_cm": 12.5,
- *   "distance_cm": 187.5,
- *   "battery_v": 12.4,
- *   "signal": 18,
- *   "alert": "high_water"        // optional: null, "high_water", "low_water", "sensor_error", "low_battery"
- * }
+ * GET /api/reading.php?device_id=RF01&water_level_cm=12.5&...
  *
  * Returns:
  *   {"success": true, "id": 1234}  or  {"success": false, "error": "..."}
- *
- * Note: This endpoint does NOT require authentication — the Arduino
- * cannot log in. For production, add an API key check.
  */
 
 header('Content-Type: application/json');
 
-// CORS — allow the serial bridge script or any origin
+// CORS
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Handle preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-// Only accept POST
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error' => 'Method not allowed. Use POST.']);
-    exit();
+// --- Read input from POST (JSON body) or GET (query string) ---
+$data = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // POST — read JSON body
+    $rawInput = file_get_contents('php://input');
+    if (!empty($rawInput)) {
+        $data = json_decode($rawInput, true);
+        if (!$data || !is_array($data)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Invalid JSON payload.']);
+            exit();
+        }
+    }
+} else {
+    // GET — read from query string
+    $data = [
+        'device_id'     => $_GET['device_id'] ?? null,
+        'water_level_cm'=> $_GET['water_level_cm'] ?? null,
+        'distance_cm'   => $_GET['distance_cm'] ?? null,
+        'battery_v'     => $_GET['battery_v'] ?? null,
+        'signal'        => $_GET['signal'] ?? 0,
+        'alert'         => $_GET['alert'] ?? null,
+        'reading_mode'  => $_GET['reading_mode'] ?? 'lte'
+    ];
 }
 
-// Read raw JSON body
-$rawInput = file_get_contents('php://input');
-if (empty($rawInput)) {
+// Validate required fields
+if (empty($data['water_level_cm']) && $data['water_level_cm'] !== '0' && $data['water_level_cm'] !== 0) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Empty request body. Send JSON.']);
-    exit();
-}
-
-$data = json_decode($rawInput, true);
-if (!$data || !is_array($data)) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Invalid JSON payload.']);
+    echo json_encode(['success' => false, 'error' => 'Missing or empty water_level_cm']);
     exit();
 }
 
