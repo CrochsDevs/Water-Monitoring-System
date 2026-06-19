@@ -120,6 +120,7 @@ if ($conn->connect_error) {
 
 // --- Insert the reading ---
 // Use custom timestamp if provided, otherwise NOW()
+date_default_timezone_set('Asia/Manila');
 $received_at = !empty($data['timestamp']) ? $data['timestamp'] : date('Y-m-d H:i:s');
 
 $stmt = $conn->prepare("
@@ -136,7 +137,7 @@ if (!$stmt) {
     exit();
 }
 
-$stmt->bind_param("sdddiss", $device_id, $water_level, $distance, $battery, $signal, $alert, $reading_mode, $received_at);
+$stmt->bind_param("sdddisss", $device_id, $water_level, $distance, $battery, $signal, $alert, $reading_mode, $received_at);
 
 if ($stmt->execute()) {
     $inserted_id = $stmt->insert_id;
