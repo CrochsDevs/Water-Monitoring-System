@@ -23,8 +23,8 @@ switch ($filter) {
     case 'hour':
         $day   = isset($_GET['day']) ? $_GET['day'] : date('Y-m-d');
         $where_base = "AND received_at BETWEEN '{$day} 00:00:00' AND '{$day} 23:59:59'";
-        $group  = "GROUP BY HOUR(received_at)";
-        $label_fn = "HOUR(received_at)";
+        $group  = "GROUP BY DATE_FORMAT(received_at, '%Y-%m-%d %H:00:00')";
+        $label_fn = "DATE_FORMAT(received_at, '%Y-%m-%d %H:00:00')";
         break;
 
     case 'day':
@@ -104,7 +104,7 @@ $labels = [];
 foreach ($label_keys as $lk) {
     switch ($filter) {
         case 'hour':
-            $labels[] = sprintf('%02d:00', intval($lk));
+            $labels[] = date('H:i', strtotime($lk));
             break;
         case 'day':
             $labels[] = date('M d', strtotime($lk));

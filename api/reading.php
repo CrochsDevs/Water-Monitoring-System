@@ -51,7 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'battery_v'     => $_GET['battery_v'] ?? null,
         'signal'        => $_GET['signal'] ?? 0,
         'alert'         => $_GET['alert'] ?? null,
-        'reading_mode'  => $_GET['reading_mode'] ?? 'lte'
+        'reading_mode'  => $_GET['reading_mode'] ?? 'lte',
+        'timestamp'     => $_GET['timestamp'] ?? null
     ];
 }
 
@@ -118,11 +119,14 @@ if ($conn->connect_error) {
 }
 
 // --- Insert the reading ---
+// Use custom timestamp if provided, otherwise NOW()
+$received_at = !empty($data['timestamp']) ? $data['timestamp'] : date('Y-m-d H:i:s');
+
 $stmt = $conn->prepare("
     INSERT INTO water_level_readings
         (device_id, water_level_cm, distance_cm, battery_v, signal_strength, alert, reading_mode, received_at)
     VALUES
-        (?, ?, ?, ?, ?, ?, ?, NOW())
+        (?, ?, ?, ?, ?, ?, ?, ?)
 ");
 
 if (!$stmt) {
@@ -132,7 +136,7 @@ if (!$stmt) {
     exit();
 }
 
-$stmt->bind_param("sdddiss", $device_id, $water_level, $distance, $battery, $signal, $alert, $reading_mode);
+$stmt->bind_param("sdddiss", $device_id, $water_level, $distance, $battery, $signal, $alert, $reading_mode, $received_at);
 
 if ($stmt->execute()) {
     $inserted_id = $stmt->insert_id;
